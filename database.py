@@ -1,10 +1,11 @@
 import sqlite3
+import time
 
 # Connect to the SQLite database
-conn = sqlite3.connect("users.db")
+conn = sqlite3.connect("users.db", check_same_thread=False)
 cursor = conn.cursor()
 
-# Create users table (now includes email)
+# Create users table if it doesn't exist
 cursor.execute('''CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     username TEXT UNIQUE,
@@ -30,12 +31,8 @@ def get_user(username):
     cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
     return cursor.fetchone()
 
-# Function to update user data (for login failures)
+# Function to update user data (for failed login attempts)
 def update_user(username, failed_attempts, locked_until):
     cursor.execute("UPDATE users SET failed_attempts = ?, locked_until = ? WHERE username = ?", 
                    (failed_attempts, locked_until, username))
     conn.commit()
-
-# Close the database connection
-def close_connection():
-    conn.close()
